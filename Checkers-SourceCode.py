@@ -809,3 +809,54 @@ def play_ai_move(board, player, depth):
     if best_move is not None:
         moveHuman(board, best_move[0], best_move[1], player, 1)
     return board
+def minimax_AlphaBeta_Algorithm(board, player, depth, alpha, beta, max_player):
+    next_player = "DD" if player == "DW" else "DW"
+
+    if depth == 0 or winner(board, 0):
+        result = evaluate(board, player)
+        new_board = copy.deepcopy(board)
+        return result, []
+
+    if not max_player:
+        min_value = float('inf')
+        for move in small_legal_moves(board, player):
+            new_board = copy.deepcopy(board)
+            White_legal_moves = small_legal_moves(new_board, player)
+            piece, new_place = move
+            if len(White_legal_moves) == 0:
+                winner(board, 0)
+            else:
+                new_board = moveHuman(new_board, piece, new_place, player, 0)
+                value, new_move = minimax_AlphaBeta_Algorithm(new_board, next_player, depth - 1, alpha, beta, True)
+                min_value = min(min_value, value)
+                if value <= min_value:
+                    best_move = move
+                beta = min(beta, min_value)
+                if beta <= alpha:
+                    break  # Beta cutoff
+        return min_value, best_move
+    else:
+        max_value = -float('inf')
+        for move in small_legal_moves(board, next_player):
+            new_board = copy.deepcopy(board)
+            legal_moves = small_legal_moves(new_board, next_player)
+            if len(legal_moves) == 0:
+                winner(board, 0)
+            else:
+                Computer(board, "DD", 0)
+            value, new_move = minimax_AlphaBeta_Algorithm(new_board, player, depth - 1, alpha, beta, False)
+            max_value = max(max_value, value)
+            if value >= max_value:
+                best_move = move
+            alpha = max(alpha, max_value)
+            if beta <= alpha:
+                break  # Alpha cutoff
+        return max_value, best_move
+
+
+
+def play_alpha_beta_ai(board, player, depth):
+    value, best_move = minimax_AlphaBeta_Algorithm(board, player, depth, -float('inf'), float('inf'), False)
+    if best_move is not None:
+        moveHuman(board, best_move[0], best_move[1], player, 1)
+    return board
