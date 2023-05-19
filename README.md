@@ -1,1 +1,1 @@
-# AI-chess-project
+# AI-connect 4-project
