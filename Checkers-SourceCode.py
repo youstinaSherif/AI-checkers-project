@@ -747,3 +747,65 @@ def get_legal_moves(board, player):
                                 # check for valid diagonal moves
 
     return legal_moves
+def evaluate(board, player):
+    DarkPieces = sum(row.count("DD") + row.count("DDK") for row in board)
+    WhitePieces = sum(row.count("DW") + row.count("DWK") for row in board)
+    DarkKings = sum(row.count("DDK") for row in board)
+    WhiteKings = sum(row.count("DWK") for row in board)
+    WhiteMoves = len(small_legal_moves(board, "DW"))
+    DarkMoves = len(small_legal_moves(board, "DD"))
+    score = (DarkPieces - WhitePieces)
+    if WhiteKings < 3:
+        score += (DarkKings - WhiteKings)
+    else:
+        score += (DarkKings * 0.5 - WhiteKings * 0.5)
+    for row in board[0]:
+        if row == "DWK":
+            score += 1
+    score += (DarkMoves - WhiteMoves) * 0.1
+    return score
+
+
+def minimax(board, player, depth, max_player):
+    next_player = "DD" if player == "DW" else "DW"
+
+    if depth == 0 or winner(board, 0):
+        result = evaluate(board, player)
+        new_board = copy.deepcopy(board)
+        return result, []
+
+    if not max_player:
+        min_value = float('inf')
+        for move in small_legal_moves(board, player):
+            new_board = copy.deepcopy(board)
+            White_legal_moves = small_legal_moves(new_board, player)
+            piece, new_place = move
+            if len(White_legal_moves) == 0:
+                winner(board, 0)
+            else:
+                new_board = moveHuman(new_board, piece, new_place, player, 0)
+                value, new_move = minimax(new_board, next_player, depth - 1, True)
+                min_value = min(min_value, value)
+                if value <= min_value:
+                    best_move = move
+    else:
+        max_value = -float('inf')
+        for move in small_legal_moves(board, next_player):
+            new_board = copy.deepcopy(board)
+            legal_moves = small_legal_moves(new_board, next_player)
+            if len(legal_moves) == 0:
+                winner(board, 0)
+            else:
+                Computer(board, "DD", 0)
+            value, new_move = minimax(new_board, player, depth - 1, False)
+            max_value = max(max_value, value)
+            if value >= max_value:
+                best_move = move
+    return value, best_move
+
+
+def play_ai_move(board, player, depth):
+    value, best_move = minimax(board, player, depth, False)
+    if best_move is not None:
+        moveHuman(board, best_move[0], best_move[1], player, 1)
+    return board
