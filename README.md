@@ -1,1 +1,1 @@
-# AI-connect 4-project
+# AI-Checkers-project
