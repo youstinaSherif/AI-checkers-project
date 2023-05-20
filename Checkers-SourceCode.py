@@ -860,3 +860,159 @@ def play_alpha_beta_ai(board, player, depth):
     if best_move is not None:
         moveHuman(board, best_move[0], best_move[1], player, 1)
     return board
+selected_piece = None
+new_place = None
+
+def on_mouse_down(self, event):
+    x, y = event.x, event.y
+    row, col = y // self.square_size, x // self.square_size
+    piece = self.board[row][col]
+    if piece is not None:
+        selected_piece = (row, col)
+
+def on_mouse_up(self, event):
+    if self.selected_piece is None:
+        return
+
+    x, y = event.x, event.y
+    row, col = y // self.square_size, x // self.square_size
+    piece = self.board[row][col]
+    if (row, col) == self.selected_piece:
+        self.selected_piece = None
+    elif piece is not None:
+        self.selected_piece = (row, col)
+    else:
+        selected_row, selected_col = self.selected_piece
+        valid_moves = self.get_valid_moves(selected_row, selected_col)
+        if (row, col) in valid_moves:
+            #moveHuman(board, selected_piece, [row, col], player, 1)
+            new_place = (row, col)
+        self.selected_piece = None
+
+def moveHuman(board, piece, new_place, player, realplay):
+    DarkPieces = sum(row.count("DD") + row.count("DDK") for row in board)
+    WhitePieces = sum(row.count("DW") + row.count("DWK") for row in board)
+    DarkKings = sum(row.count("DDK") for row in board)
+    WhiteKings = sum(row.count("DWK") for row in board)
+    moved = False
+    moves = get_legal_moves(board, player)
+    Temp = (0, 0)
+    # move=(3,6),(5,4)
+    # moves[....,[(3,6),(5,4)],[(5,4),(7,6)]
+    for move in moves:
+        if Temp == move[0]:
+            mid_row = (move[0][0] + move[1][0]) // 2
+            mid_col = (move[0][1] + move[1][1]) // 2
+
+            # remove the piece that is being jumped
+            if board[mid_row][mid_col].startswith("DD"):
+                DarkPieces -= 1
+            elif board[mid_row][mid_col].startswith("DW"):
+                WhitePieces -= 1
+            board[mid_row][mid_col] = "D"
+
+            # move the piece to the new place
+            board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
+            board[move[0][0]][move[0][1]] = "D"
+            # promote the piece to a king if it reaches the end row
+            if player == "DW" and move[1][0] == 0 and board[move[1][0]][move[1][1]] == "DW":
+                board[move[1][0]][move[1][1]] = "DWK"
+                WhiteKings += 1
+            elif player == "DD" and move[1][0] == 7 and board[move[1][0]][move[1][1]] == "DD":
+                board[move[1][0]][move[1][1]] = "DDK"
+                DarkKings += 1
+            if realplay == 1:
+                start_gui(board)
+                time.sleep(2)
+            Temp = move[1]
+            moved = True
+        # [piece=(0,1),new_place=(1,2)]
+        if move[0] == piece and move[1] == new_place:
+            X, Y = piece[0], piece[1]
+
+            # check if the move is a jump
+            if abs(move[1][0] - piece[0]) == 2:
+                mid_row = (move[0][0] + move[1][0]) // 2
+                mid_col = (move[0][1] + move[1][1]) // 2
+
+                # remove the piece that is being jumped
+                if board[mid_row][mid_col].startswith("DD"):
+                    DarkPieces -= 1
+                elif board[mid_row][mid_col].startswith("DW"):
+                    WhitePieces -= 1
+                elif board[mid_row][mid_col].startswith("DWK"):
+                    WhitePieces -= 1
+                    WhiteKings -= 1
+                elif board[mid_row][mid_col].startswith("DDK"):
+                    DarkPieces -= 1
+                    DarkKings -= 1
+                board[mid_row][mid_col] = "D"
+
+            # move the piece to the new place
+            board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
+            board[move[0][0]][move[0][1]] = "D"
+            # promote the piece to a king if it reaches the end row
+            if player == "DW" and move[1][0] == 0 and board[move[1][0]][move[1][1]] == "DW":
+                board[move[1][0]][move[1][1]] = "DWK"
+                WhiteKings += 1
+            elif player == "DD" and move[1][0] == 7 and board[move[1][0]][move[1][1]] == "DD":
+                board[move[1][0]][move[1][1]] = "DDK"
+                DarkKings += 1
+            if realplay == 1:
+                start_gui(board)
+                time.sleep(2)
+            Temp = move[1]
+            moved = True
+    if moved == False:
+        print("That's an illegal move!")
+    return board
+
+
+def Print_board(board):
+    # Print the header row with column indices
+    print("   ", end="")
+    for i in range(len(board[0])):
+        print(f"{i:2d} ", end="")
+    print()
+
+    # Print the board elements with row indices
+    for i, row in enumerate(board):
+        print(f"{i:2d} ", end="")
+        for element in row:
+            print(f"{element:2s} ", end="")
+        print()
+
+
+def Computer(board, player, RealPlay):
+    legal_moves = small_legal_moves(board, player)
+    if len(legal_moves) == 0:
+        winner(board, 0)
+    else:
+        choice = random.choice(legal_moves)
+        moveHuman(board, choice[0], choice[1], player, RealPlay)
+
+
+import tkinter.messagebox as messagebox
+
+
+def winner(new_board, FromMain):
+    DarkPieces = sum(row.count("DD") + row.count("DDK") for row in board)
+    WhitePieces = sum(row.count("DW") + row.count("DWK") for row in board)
+    if (WhitePieces == 0):
+        if FromMain == 1:
+            messagebox.showinfo("Game Over", "Winner is Black pieces, ate all the white pieces!")
+        return True
+    elif (DarkPieces == 0):
+        if FromMain == 1:
+            messagebox.showinfo("Game Over", "Winner is White pieces, ate all the Black pieces!")
+        return True
+    elif (not small_legal_moves(new_board, "DW")):
+        if FromMain == 1:
+            messagebox.showinfo("Game Over", "Winner is Dark pieces, no available moves for White pieces!")
+        return True
+    elif (not small_legal_moves(new_board, "DD")):
+        if FromMain == 1:
+            messagebox.showinfo("Game Over", "Winner is White pieces, no available moves for Dark pieces!")
+        return True
+    else:
+        return False
