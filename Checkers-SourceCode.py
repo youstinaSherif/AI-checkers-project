@@ -1016,3 +1016,40 @@ def winner(new_board, FromMain):
         return True
     else:
         return False
+    if _name_ == "_main_":
+    selected_level, selected_algorithm = level_selection()
+    print("Selected level:", selected_level)
+    print("Selected algorithm:", selected_algorithm)
+    # easy
+    if selected_level == 1:
+        depth = 2
+    # Medium
+    elif selected_level == 2:
+        depth = 4
+    # hard
+    elif selected_level == 3:
+        depth = 6
+    counter = 0
+    DarkPieces = 12
+    WhitePieces = 12
+    WhiteKings = 0
+    DarkKings = 0
+    board = create_board()
+    start_gui(board)
+    time.sleep(1)
+    start_time = time.time()
+    while not winner(board, 1) == True:
+        if counter % 2 == 0:
+            player = "DW"
+            if selected_algorithm == "Minimax":
+                play_ai_move(board, player, depth)
+            elif selected_algorithm == "Alpha":
+                play_alpha_beta_ai(board, player, depth)
+        elif not counter % 2 == 0:
+            player = "DD"
+            Computer(board, player, 1)
+        counter += 1
+end_time = time.time()
+time.sleep(1)
+elapsed_time = end_time - start_time
+print(f"Elapsed Time: {elapsed_time} seconds")
